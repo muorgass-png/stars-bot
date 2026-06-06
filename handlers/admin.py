@@ -200,3 +200,76 @@ async def back_to_main(message: Message):
     if not is_admin(message.from_user.id):
         return
     await message.answer("🖥 Asosiy menyudasiz!", reply_markup=main_menu())
+
+
+# ── Stars qo'shish: /addstars USER_ID MIQDOR ──────────────────────────────────
+
+@router.message(Command("addstars"))
+async def add_stars_cmd(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    args = message.text.split()
+    if len(args) != 3 or not args[1].isdigit() or not args[2].isdigit():
+        await message.answer(
+            "❌ Noto'g'ri format!\n\n"
+            "To'g'ri: <code>/addstars USER_ID MIQDOR</code>\n"
+            "Masalan: <code>/addstars 6364081843 100</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    user_id = int(args[1])
+    amount  = int(args[2])
+    user    = await db.get_user(user_id)
+
+    if not user:
+        await message.answer(f"❌ ID <code>{user_id}</code> topilmadi!", parse_mode="HTML")
+        return
+
+    await db.add_stars(user_id, amount)
+    await message.answer(
+        f"✅ <b>{user['full_name']}</b> ga <b>{amount} ⭐</b> qo'shildi!\n"
+        f"Yangi balans: <b>{user['balance'] + amount} ⭐</b>",
+        parse_mode="HTML"
+    )
+
+
+# ── Stars ayirish: /removestars USER_ID MIQDOR ────────────────────────────────
+
+@router.message(Command("removestars"))
+async def remove_stars_cmd(message: Message):
+    if not is_admin(message.from_user.id):
+        return
+
+    args = message.text.split()
+    if len(args) != 3 or not args[1].isdigit() or not args[2].isdigit():
+        await message.answer(
+            "❌ Noto'g'ri format!\n\n"
+            "To'g'ri: <code>/removestars USER_ID MIQDOR</code>\n"
+            "Masalan: <code>/removestars 6364081843 50</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    user_id = int(args[1])
+    amount  = int(args[2])
+    user    = await db.get_user(user_id)
+
+    if not user:
+        await message.answer(f"❌ ID <code>{user_id}</code> topilmadi!", parse_mode="HTML")
+        return
+
+    if user['balance'] < amount:
+        await message.answer(
+            f"❌ Foydalanuvchida faqat <b>{user['balance']} ⭐</b> bor!",
+            parse_mode="HTML"
+        )
+        return
+
+    await db.deduct_stars(user_id, amount)
+    await message.answer(
+        f"✅ <b>{user['full_name']}</b> dan <b>{amount} ⭐</b> ayirildi!\n"
+        f"Yangi balans: <b>{user['balance'] - amount} ⭐</b>",
+        parse_mode="HTML"
+    )
