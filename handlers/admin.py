@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 import database as db
-from config import ADMIN_IDS
+from config import ADMIN_IDS, PAYMENT_CHANNEL_ID
 from keyboards import admin_menu, main_menu
 
 router = Router()
@@ -94,6 +94,10 @@ async def approve_withdrawal(call: CallbackQuery, bot: Bot):
     )
     await call.answer("✅ Tasdiqlandi!")
 
+    user = await db.get_user(target['user_id'])
+    name = user['full_name'] if user else str(target['user_id'])
+
+    # Foydalanuvchiga xabar
     try:
         await bot.send_message(
             target['user_id'],
@@ -101,6 +105,20 @@ async def approve_withdrawal(call: CallbackQuery, bot: Bot):
             f"💰 {target['amount']} ⭐ Stars\n"
             f"💳 {target['card_number']}\n\n"
             f"Pul tez orada kartangizga o'tkaziladi.",
+            parse_mode="HTML"
+        )
+    except Exception:
+        pass
+
+    # Kanalga xabar
+    try:
+        await bot.send_message(
+            PAYMENT_CHANNEL_ID,
+            f"✅ <b>To'lov amalga oshirildi!</b>\n\n"
+            f"👤 Foydalanuvchi: <b>{name}</b>\n"
+            f"💰 Miqdor: <b>{target['amount']} ⭐ Stars</b>\n"
+            f"💳 Karta: <code>{target['card_number']}</code>\n"
+            f"📋 So'rov ID: #{wid}",
             parse_mode="HTML"
         )
     except Exception:
