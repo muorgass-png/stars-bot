@@ -27,11 +27,7 @@ async def check_subscription(bot: Bot, user_id: int) -> bool:
 
 
 async def not_subscribed_msg(message: Message, bot: Bot):
-    try:
-        invite = await bot.create_chat_invite_link(CHANNEL_ID)
-        link = invite.invite_link
-    except Exception:
-        link = "https://t.me/"
+    link = "https://t.me/usmonovv_org_starsbot_otzv"
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📢 Kanalga a'zo bo'lish", url=link)],
         [InlineKeyboardButton(text="✅ A'zo bo'ldim", callback_data="check_sub")]
